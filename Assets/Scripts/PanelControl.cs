@@ -4,30 +4,37 @@ using UnityEngine;
 
 public class PanelControl : MonoBehaviour {
 
-    public float NumberPanels;
     public GameObject PlayAreaObject;
     private SteamVR_PlayArea playArea;
-
+    private float filledPanel = 70;
+    public int beatsUntilFilled;
+    public List<Panel> panels = new List<Panel>();
+    private int test;
+    private int beatNum = 0;
 
 	// Use this for initialization
 	void Start () {
-        StartCoroutine(SetPanelBounds());
+
 	}
 
-    IEnumerator SetPanelBounds()
+
+    public void Beat()
     {
-        Valve.VR.HmdQuad_t rect = new Valve.VR.HmdQuad_t();
-
-        while (!SteamVR_PlayArea.GetBounds(SteamVR_PlayArea.Size.Calibrated, ref rect))
-            yield return new WaitForSeconds(0.1f);
-
-        Vector3 newScale = new Vector3(Mathf.Abs(rect.vCorners0.v0 - rect.vCorners2.v0), this.transform.localScale.y, Mathf.Abs(rect.vCorners0.v2 - rect.vCorners2.v2));
-
-        this.transform.localScale = newScale;
+        beatNum++;
+        panels.ForEach(panel => panel.SendMessage("Beat",SendMessageOptions.DontRequireReceiver));
+        if (beatNum % 2 == 0)
+        {
+            panels[test].On();
+            test++;
+            if (test > 5) test = 0;
+        }
     }
 
     // Update is called once per frame
     void Update () {
-		
+		if (Input.GetKeyDown("l"))
+        {
+            panels[0].On();
+        }
 	}
 }

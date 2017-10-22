@@ -6,6 +6,9 @@ TagManager:
   tags:
   - ControllerSphere
   - Grabable
+  - Panel
+  - PanelMaster
+  - GrowingLight
   layers:
   - Default
   - TransparentFX
@@ -15,12 +18,12 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - RPanel
+  - GPanel
+  - BPanel
+  - CPanel
+  - YPanel
+  - Mpanel
   - 
   - 
   - 
