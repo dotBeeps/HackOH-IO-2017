@@ -14,6 +14,9 @@ public class ReadBeatmap : MonoBehaviour {
     public struct Metadata
     {
         //example values idk what's actually going to be in the file
+        public string title;
+        public string highScore;
+        public string maxCombo;
         public string beatmapVersion;
         public Dictionary<float, int> songData;
         public float bpm;
@@ -34,11 +37,14 @@ public class ReadBeatmap : MonoBehaviour {
         Dictionary<float, int> data = new Dictionary<float, int>();
         Metadata metadata = new Metadata();
         string[] fileData = File.ReadAllLines(path);
-        for(int i = 1; i < fileData.Length-1; i += 2)
+        for(int i = 4; i < fileData.Length-1; i += 2)
         {
             data.Add(float.Parse(fileData[i]), int.Parse(fileData[i + 1]));
         }
         metadata.beatmapVersion = fileData[0];
+        metadata.title = fileData[1];
+        metadata.highScore = fileData[2];
+        metadata.maxCombo = fileData[3];
         metadata.songData = data;
         Regex r = new Regex(@"[0-9]+\.[0-9]+");
         Debug.Log(fileData.Last());

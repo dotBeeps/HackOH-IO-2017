@@ -16,6 +16,10 @@ public class Panel : MonoBehaviour {
     private Color spotlightColor;
     private Material spotlightMat;
     private Material spotlightIMat;
+    private PanelControl panelController;
+    public DisplayPanel PanelRep;
+    private bool turnOn = false;
+    private int waitBeats = 0;
 
 	// Use this for initialization
 	void Start () {
@@ -23,7 +27,7 @@ public class Panel : MonoBehaviour {
         pRenderer = GetComponent<Renderer>();
         spotlight = transform.Find("DanceLight").gameObject;
         spotlightInverse = transform.Find("DanceLightI").gameObject;
-
+        panelController = transform.parent.GetComponent<PanelControl>();
         spotlightMat = spotlight.GetComponent<Renderer>().material;
         spotlightIMat = spotlightInverse.GetComponent<Renderer>().material;
 	}
@@ -37,20 +41,52 @@ public class Panel : MonoBehaviour {
     {
         if (FloatCloseToEqual(GetSpotlightVib(), dim, .01f))
         {
-            spotlightColor = SetVValue(OriginalColor,bright);
-            spotlightMat.SetColor("_EmissionColor", spotlightColor);
-            spotlightIMat.SetColor("_EmissionColor", spotlightColor);
+            if (waitBeats >= panelController.WaitBeats)
+            {
+                spotlightColor = SetVValue(OriginalColor, bright);
+                spotlightMat.SetColor("_EmissionColor", spotlightColor);
+                spotlightIMat.SetColor("_EmissionColor", spotlightColor);
+                waitBeats = 0;
+                PanelRep.TurnOff();
+            } else
+            {
+                waitBeats++;
+            }
         } else if (FloatCloseToEqual(GetSpotlightVib(), bright, .01f))
         {
             spotlightColor = SetVValue(OriginalColor, 0);
             spotlightMat.SetColor("_EmissionColor", spotlightColor);
             spotlightIMat.SetColor("_EmissionColor", spotlightColor);
+            if (CheckForPlayer())
+                panelController.Hit();
+            else
+                panelController.Miss();
+            
         }
         
     }
 
+    bool CheckForPlayer()
+    {
+        Collider[] overlap = Physics.OverlapCapsule(transform.position, transform.position + Vector3.up * 20f, 0.5f, -1, QueryTriggerInteraction.Collide);
+        foreach (Collider col in overlap.Where(col => col.tag == "ControllerSphere"))
+        {
+            SteamVR_Controller.Input((int)col.transform.GetComponentInParent<SteamVR_TrackedController>().controllerIndex).TriggerHapticPulse(1000);
+        }
+        if (overlap.Any(col => col.tag == "MainCamera"))
+        {
+            foreach(GameObject gObj in GameObject.FindGameObjectsWithTag("ControllerSphere"))
+            {
+                SteamVR_Controller.Input((int)gObj.transform.GetComponentInParent<SteamVR_TrackedController>().controllerIndex).TriggerHapticPulse(1000);
+            }
+        }
+
+        return overlap.Any(col => col.tag == "MainCamera" || col.tag == "ControllerSphere");
+    }
+
     public void On()
     {
+        PanelRep.TurnOn();
         spotlightColor = SetVValue(OriginalColor, dim);
         spotlightMat.SetColor("_EmissionColor", spotlightColor);
         spotlightIMat.SetColor("_EmissionColor", spotlightColor);
