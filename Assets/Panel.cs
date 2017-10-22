@@ -35,7 +35,6 @@ public class Panel : MonoBehaviour {
 
     void Beat()
     {
-
         if (FloatCloseToEqual(GetSpotlightVib(), dim, .01f))
         {
             spotlightColor = SetVValue(OriginalColor,bright);

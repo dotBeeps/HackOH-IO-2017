@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 public class ReadBeatmap : MonoBehaviour {
 
@@ -12,43 +14,39 @@ public class ReadBeatmap : MonoBehaviour {
     public struct Metadata
     {
         //example values idk what's actually going to be in the file
-        public string title;
-        public string artist;
-        public string songPath;
-
-        public float beatmapOffset;
-
+        public string beatmapVersion;
+        public Dictionary<float, int> songData;
         public float bpm;
     }
 
-    public List<int> songData;
-    public List<float> songTimes;
+
+    public Dictionary<float, int> songData = new Dictionary<float, int>(); 
 
     Metadata metaData = new Metadata();
 
     // Use this for initialization
     void Start () {
-        string[] fileData = File.ReadAllLines(mapPath);
-        //initialize metadata & do whatever with it
-        for(int i = 0; i < fileData.Length; i += 2)
-        {
-            songTimes[i / 2] = float.Parse(fileData[i]);
-            songData[i / 2] =  int.Parse(fileData[i + 1]);
-        }
+
     }
 
-    // Update is called once per frame
-    void Update () {
-        if (init && i < songData.Count)
-        {
-            StartCoroutine(PlayBeat(songData[i]));
-            i++;
-        }
-	}
-    
-    IEnumerator PlayBeat(int square)
+    public static Metadata ReadMap(string path)
     {
-        //do game stuff in the game square
-        yield return new WaitForSeconds(0 /*time delay*/);
+        Dictionary<float, int> data = new Dictionary<float, int>();
+        Metadata metadata = new Metadata();
+        string[] fileData = File.ReadAllLines(path);
+        for(int i = 1; i < fileData.Length-1; i += 2)
+        {
+            data.Add(float.Parse(fileData[i]), int.Parse(fileData[i + 1]));
+        }
+        metadata.beatmapVersion = fileData[0];
+        metadata.songData = data;
+        Regex r = new Regex(@"[0-9]+\.[0-9]+");
+        Debug.Log(fileData.Last());
+        Debug.Log(r.Match(fileData.Last()).Value);
+        metadata.bpm = float.Parse(r.Match(fileData.Last()).Value);
+        return metadata;
     }
+
+
+   
 }

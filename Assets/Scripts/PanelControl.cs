@@ -11,30 +11,61 @@ public class PanelControl : MonoBehaviour {
     public List<Panel> panels = new List<Panel>();
     private int test;
     private int beatNum = 0;
+    public float bpm;
+    public AudioSource audioSource;
+    ReadBeatmap.Metadata songMetadata;
+    public string BeatmapPath;
+    public string SongPath;
 
-	// Use this for initialization
-	void Start () {
-
-	}
-
-
-    public void Beat()
+    public float BeatsToSeconds(int beats)
     {
-        beatNum++;
-        panels.ForEach(panel => panel.SendMessage("Beat",SendMessageOptions.DontRequireReceiver));
-        if (beatNum % 2 == 0)
+        return (60 / bpm) * beats;
+    }
+
+    public void LoadSong()
+    {
+        songMetadata = ReadBeatmap.ReadMap(BeatmapPath);
+        AudioClip audio = Resources.Load(SongPath) as AudioClip;
+        audio.LoadAudioData();
+        audioSource.clip = audio;
+        bpm = songMetadata.bpm;
+    }
+
+    public void PlaySong()
+    {
+        InvokeRepeating("Beat", 0f, 60 / bpm);
+        foreach (KeyValuePair<float, int> beat in songMetadata.songData)
         {
-            panels[test].On();
-            test++;
-            if (test > 5) test = 0;
+            StartCoroutine(DelayedTurnOnPanel(beat.Value, beat.Key));
         }
+        
+        audioSource.Play();
+    }
+
+    IEnumerator DelayedTurnOnPanel(int i, float wait)
+    {
+        yield return new WaitForSeconds(wait);
+        panels[i].On();
+    }
+
+    public void TurnOnPanel(int i)
+    {
+        panels[i].On();
+    }
+
+    void Beat()
+    {
+
+        panels.ForEach(panel => panel.SendMessage("Beat", SendMessageOptions.DontRequireReceiver));
+
     }
 
     // Update is called once per frame
     void Update () {
-		if (Input.GetKeyDown("l"))
+        if (Input.GetKeyDown("l"))
         {
-            panels[0].On();
+            LoadSong();
+            PlaySong();
         }
 	}
 }
